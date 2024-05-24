@@ -66,14 +66,8 @@ impl Display for Emoji {
 }
 
 fn main() -> anyhow::Result<()> {
-    let branch = execute_cmd("git branch")?;
     let unstaged_diff = find_diff(false);
     let staged_diff = find_diff(true);
-    let status: String = status()
-        .lines()
-        .map(|l| format!("# {}", l))
-        .collect::<Vec<String>>()
-        .join("\n");
 
     if staged_diff.is_empty() && unstaged_diff.is_empty() {
         println!("Working directory clean. Nothing to commit.");
@@ -85,14 +79,19 @@ fn main() -> anyhow::Result<()> {
             println!("{} {}", change.kind, change.path);
         });
 
-        println!("No changes added to commit.");
+        println!("No changes added to commit. Stage changes first.");
         return Ok(());
     }
 
-    println!("Changes to be committed:");
-    staged_diff.iter().for_each(|change| {
-        println!("{} {}", change.kind, change.path);
-    });
+    let status = status();
+
+    println!("{}", status);
+
+    let status: String = status
+        .lines()
+        .map(|l| format!("# {}", l))
+        .collect::<Vec<String>>()
+        .join("\n");
 
     let emojis: Vec<Emoji> = serde_json::from_str(include_str!("emojis.json")).unwrap();
 
