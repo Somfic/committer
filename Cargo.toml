@@ -2,6 +2,8 @@
 name = "committer"
 version = "0.1.0"
 edition = "2021"
+description = "A simple git commit message generator"
+license = "MIT"
 
 [dependencies]
 anyhow = "1.0.86"
