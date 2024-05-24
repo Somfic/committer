@@ -63,7 +63,7 @@ fn main() -> anyhow::Result<()> {
         .with_predefined_text(message)
         .prompt()?;
 
-    let result = execute_cmd(&format!("git commit -m '{}", message))?;
+    let result = execute_cmd(&format!("git commit -m \"{}\"", message))?;
 
     Ok(())
 }
