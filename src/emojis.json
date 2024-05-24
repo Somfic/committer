@@ -43,7 +43,7 @@
       "emoji": "✨",
       "entity": "&#x2728;",
       "code": ":sparkles:",
-      "description": "Introduce new features.",
+      "description": "Add new features.",
       "name": "sparkles",
       "semver": "minor"
     },
