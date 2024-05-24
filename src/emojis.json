@@ -2,7 +2,7 @@
     {
       "emoji": "🎨",
       "entity": "&#x1f3a8;",
-      "code": ":art:",  
+      "code": ":art:",     
       "description": "Improve structure / format of the code",
       "name": "art",
       "semver": null
