@@ -51,7 +51,7 @@ fn main() -> anyhow::Result<()> {
     let scope = inquire::Text::new("Scope:")
         .with_help_message("What is the scope of the commit?")
         .with_autocomplete(commit_scope_completer)
-        .with_default(scopes.clone().iter().last().unwrap_or(&"".to_string()))
+        .with_initial_value(scopes.clone().iter().last().unwrap_or(&"".to_string()))
         .prompt_skippable()?
         .map(|s| format!("({}): ", s))
         .unwrap_or_default();
