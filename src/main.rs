@@ -66,8 +66,14 @@ impl Display for Emoji {
 }
 
 fn main() -> anyhow::Result<()> {
+    let branch = execute_cmd("git branch")?;
     let unstaged_diff = find_diff(false);
     let staged_diff = find_diff(true);
+    let status: String = status()
+        .lines()
+        .map(|l| format!("# {}", l))
+        .collect::<Vec<String>>()
+        .join("\n");
 
     if staged_diff.is_empty() && unstaged_diff.is_empty() {
         println!("Working directory clean. Nothing to commit.");
@@ -82,6 +88,11 @@ fn main() -> anyhow::Result<()> {
         println!("No changes added to commit.");
         return Ok(());
     }
+
+    println!("Changes to be committed:");
+    staged_diff.iter().for_each(|change| {
+        println!("{} {}", change.kind, change.path);
+    });
 
     let emojis: Vec<Emoji> = serde_json::from_str(include_str!("emojis.json")).unwrap();
 
@@ -111,7 +122,7 @@ fn main() -> anyhow::Result<()> {
 
     let subject = inquire::Text::new("Subject:")
         .with_help_message("Describe the commit in one line")
-        .with_placeholder(&intention.description)
+        .with_placeholder(description)
         .with_validator(NonEmptyValidator)
         .prompt()?;
 
@@ -136,14 +147,24 @@ fn main() -> anyhow::Result<()> {
         None => "semver: chore".to_string(),
     };
 
-    let message = &format!("{}\n\n{}", subject, semver);
+    let message = &format!("{}\n\n{}\n\n{}", subject, status, semver);
 
     let message = inquire::Editor::new(subject)
         .with_help_message("What is the body of the commit?")
         .with_predefined_text(message)
         .prompt()?;
 
-    let result = execute_cmd(&format!("git --no-pager commit -m \"{}\"", message))?;
+    let message = message
+        .lines()
+        .filter(|line| !line.starts_with("#"))
+        .collect::<Vec<&str>>()
+        .join("\n");
+
+    let command = &format!("git commit -m \"{}\"", message);
+
+    println!("Executing command: {}", command);
+
+    let result = execute_cmd(command)?;
 
     Ok(())
 }
@@ -198,6 +219,11 @@ impl Autocomplete for CommitScopeCompleter {
 
         Ok(Some(completion))
     }
+}
+
+fn status() -> String {
+    execute_cmd("git remote update").unwrap();
+    execute_cmd("git --no-pager status").unwrap()
 }
 
 fn find_diff(staged_only: bool) -> Vec<Change> {
