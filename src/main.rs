@@ -162,8 +162,6 @@ fn main() -> anyhow::Result<()> {
 
     let command = &format!("git commit -m \"{}\"", message);
 
-    println!("Executing command: {}", command);
-
     let result = execute_cmd(command)?;
 
     Ok(())
