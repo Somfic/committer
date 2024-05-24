@@ -48,17 +48,21 @@ fn main() -> anyhow::Result<()> {
         .with_validator(NonEmptyValidator)
         .prompt()?;
 
-    let scope = inquire::Text::new("Scope:")
+    let mut scope = inquire::Text::new("Scope:")
         .with_help_message("What is the scope of the commit?")
         .with_autocomplete(commit_scope_completer)
+        .with_placeholder("No scope")
         .with_initial_value(scopes.clone().iter().last().unwrap_or(&"".to_string()))
-        .prompt_skippable()?
-        .map(|s| format!("({}): ", s))
-        .unwrap_or_default();
+        .prompt()?;
+
+    // If not empty, add a space before the scope
+    if !scope.is_empty() {
+        scope = format!("({}): ", scope);
+    }
 
     let message = &format!("{} {}{}", intention.emoji, scope, subject);
 
-    let message = inquire::Editor::new(&message)
+    let message = inquire::Editor::new(message)
         .with_help_message("What is the body of the commit?")
         .with_predefined_text(message)
         .prompt()?;
