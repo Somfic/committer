@@ -8,12 +8,55 @@ use inquire::Autocomplete;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum SemVer {
+    Major,
+    Minor,
+    Patch,
+}
+
+#[derive(Deserialize)]
 struct Emoji {
     pub emoji: String,
     pub entity: String,
     pub code: String,
     pub description: String,
     pub name: String,
+    pub semver: Option<SemVer>,
+}
+
+#[derive(Debug)]
+enum ChangeKind {
+    Added,
+    Copied,
+    Deleted,
+    Modified,
+    Renamed,
+    Changed,
+    Unmerged,
+    Unknown,
+    Broken,
+}
+
+impl Display for ChangeKind {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            ChangeKind::Added => write!(f, "A"),
+            ChangeKind::Copied => write!(f, "C"),
+            ChangeKind::Deleted => write!(f, "D"),
+            ChangeKind::Modified => write!(f, "M"),
+            ChangeKind::Renamed => write!(f, "R"),
+            ChangeKind::Changed => write!(f, "T"),
+            ChangeKind::Unmerged => write!(f, "U"),
+            ChangeKind::Unknown => write!(f, "X"),
+            ChangeKind::Broken => write!(f, "B"),
+        }
+    }
+}
+
+struct Change {
+    pub kind: ChangeKind,
+    pub path: String,
 }
 
 impl Display for Emoji {
@@ -23,6 +66,23 @@ impl Display for Emoji {
 }
 
 fn main() -> anyhow::Result<()> {
+    let unstaged_diff = find_diff(false);
+    let staged_diff = find_diff(true);
+
+    if staged_diff.is_empty() && unstaged_diff.is_empty() {
+        println!("Working directory clean. Nothing to commit.");
+        return Ok(());
+    }
+
+    if staged_diff.is_empty() {
+        unstaged_diff.iter().for_each(|change| {
+            println!("{} {}", change.kind, change.path);
+        });
+
+        println!("No changes added to commit.");
+        return Ok(());
+    }
+
     let emojis: Vec<Emoji> = serde_json::from_str(include_str!("emojis.json")).unwrap();
 
     let scope_regex = regex::Regex::new(r"\s\((\w+)\):")?;
@@ -42,8 +102,15 @@ fn main() -> anyhow::Result<()> {
     // Scan previous commits to find out all the scopes
     let commit_scope_completer = CommitScopeCompleter::new(scopes.clone());
 
+    let description = match intention.semver {
+        Some(SemVer::Major) => "Describe the breaking change",
+        Some(SemVer::Minor) => "Describe the new feature",
+        Some(SemVer::Patch) => "Describe the patch",
+        None => "Describe the chore",
+    };
+
     let subject = inquire::Text::new("Subject:")
-        .with_help_message("What is the subject of the commit?")
+        .with_help_message("Describe the commit in one line")
         .with_placeholder(&intention.description)
         .with_validator(NonEmptyValidator)
         .prompt()?;
@@ -60,14 +127,23 @@ fn main() -> anyhow::Result<()> {
         scope = format!("({}): ", scope);
     }
 
-    let message = &format!("{} {}{}", intention.emoji, scope, subject);
+    let subject = &format!("{} {}{}", intention.emoji, scope, subject);
 
-    let message = inquire::Editor::new(message)
+    let semver = match intention.semver {
+        Some(SemVer::Major) => "semver: major".to_string(),
+        Some(SemVer::Minor) => "semver: minor".to_string(),
+        Some(SemVer::Patch) => "semver: patch".to_string(),
+        None => "semver: chore".to_string(),
+    };
+
+    let message = &format!("{}\n\n{}", subject, semver);
+
+    let message = inquire::Editor::new(subject)
         .with_help_message("What is the body of the commit?")
         .with_predefined_text(message)
         .prompt()?;
 
-    let result = execute_cmd(&format!("git commit -m \"{}\"", message))?;
+    let result = execute_cmd(&format!("git --no-pager commit -m \"{}\"", message))?;
 
     Ok(())
 }
@@ -122,6 +198,36 @@ impl Autocomplete for CommitScopeCompleter {
 
         Ok(Some(completion))
     }
+}
+
+fn find_diff(staged_only: bool) -> Vec<Change> {
+    let diff = if staged_only {
+        execute_cmd("git --no-pager diff --cached --name-status").unwrap()
+    } else {
+        execute_cmd("git --no-pager diff --name-status").unwrap()
+    };
+
+    diff.lines()
+        .map(|line| {
+            let mut parts = line.split_whitespace();
+            let kind = match parts.next() {
+                Some("A") => ChangeKind::Added,
+                Some("C") => ChangeKind::Copied,
+                Some("D") => ChangeKind::Deleted,
+                Some("M") => ChangeKind::Modified,
+                Some("R") => ChangeKind::Renamed,
+                Some("T") => ChangeKind::Changed,
+                Some("U") => ChangeKind::Unmerged,
+                Some("X") => ChangeKind::Unknown,
+                Some("B") => ChangeKind::Broken,
+                _ => ChangeKind::Unknown,
+            };
+
+            let path = parts.next().unwrap_or_default().to_string();
+
+            Change { kind, path }
+        })
+        .collect()
 }
 
 fn execute_cmd(cmd: &str) -> anyhow::Result<String> {
