@@ -93,17 +93,13 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    // println!("{}", status);
-
     if staged_diff.is_empty() && unstaged_diff.is_empty() {
         println!("Working directory clean. Nothing to commit.");
         return Ok(());
     }
 
     if staged_diff.is_empty() {
-        unstaged_diff.iter().for_each(|change| {
-            //println!("{} {}", change.kind, change.path);
-        });
+        unstaged_diff.iter().for_each(|change| {});
 
         println!("No changes added to commit. Stage changes first.");
         return Ok(());
