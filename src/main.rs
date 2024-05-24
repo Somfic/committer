@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::anyhow;
-use inquire::Autocomplete;
+use inquire::{validator::ValueRequiredValidator, Autocomplete};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -122,7 +122,7 @@ fn main() -> anyhow::Result<()> {
     let subject = inquire::Text::new("Subject:")
         .with_help_message("Describe the commit in one line")
         .with_placeholder(description)
-        .with_validator(NonEmptyValidator)
+        .with_validator(ValueRequiredValidator::default())
         .prompt()?;
 
     let mut scope = inquire::Text::new("Scope:")
@@ -164,24 +164,6 @@ fn main() -> anyhow::Result<()> {
     let result = execute_cmd(command)?;
 
     Ok(())
-}
-
-#[derive(Clone, Default)]
-pub struct NonEmptyValidator;
-
-impl inquire::validator::StringValidator for NonEmptyValidator {
-    fn validate(
-        &self,
-        input: &str,
-    ) -> Result<inquire::validator::Validation, inquire::CustomUserError> {
-        if input.is_empty() {
-            Ok(inquire::validator::Validation::Invalid(
-                anyhow!("Input cannot be empty").into(),
-            ))
-        } else {
-            Ok(inquire::validator::Validation::Valid)
-        }
-    }
 }
 
 #[derive(Clone, Default)]
