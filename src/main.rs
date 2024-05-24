@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::anyhow;
 use inquire::{validator::ValueRequiredValidator, Autocomplete};
+use regex::Regex;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -68,6 +69,31 @@ impl Display for Emoji {
 fn main() -> anyhow::Result<()> {
     let unstaged_diff = find_diff(false);
     let staged_diff = find_diff(true);
+    let status: String = status();
+
+    if status.contains("Your branch is behind") {
+        let behind_by_commit = Regex::new(r"Your branch is behind 'origin/[^']*' by (\d+) commit")?
+            .captures(&status)
+            .and_then(|capture| capture.get(1))
+            .and_then(|m| m.as_str().parse::<u32>().ok())
+            .unwrap_or(0);
+
+        let wants_pull = inquire::Confirm::new(
+            format!(
+                "You are behind by {} commits. Do you want to pull?",
+                behind_by_commit
+            )
+            .as_str(),
+        )
+        .with_default(false)
+        .prompt()?;
+
+        if wants_pull {
+            execute_cmd("git pull")?;
+        }
+    }
+
+    // println!("{}", status);
 
     if staged_diff.is_empty() && unstaged_diff.is_empty() {
         println!("Working directory clean. Nothing to commit.");
@@ -76,22 +102,12 @@ fn main() -> anyhow::Result<()> {
 
     if staged_diff.is_empty() {
         unstaged_diff.iter().for_each(|change| {
-            println!("{} {}", change.kind, change.path);
+            //println!("{} {}", change.kind, change.path);
         });
 
         println!("No changes added to commit. Stage changes first.");
         return Ok(());
     }
-
-    let status = status();
-
-    println!("{}", status);
-
-    let status: String = status
-        .lines()
-        .map(|l| format!("# {}", l))
-        .collect::<Vec<String>>()
-        .join("\n");
 
     let emojis: Vec<Emoji> = serde_json::from_str(include_str!("emojis.json")).unwrap();
 
@@ -146,7 +162,13 @@ fn main() -> anyhow::Result<()> {
         None => "semver: chore".to_string(),
     };
 
-    let message = &format!("{}\n\n{}\n\n{}", subject, status, semver);
+    let commented_status = status
+        .lines()
+        .map(|l| format!("# {}", l))
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    let message = &format!("{}\n\n{}\n\n{}", subject, commented_status, semver);
 
     let message = inquire::Editor::new(subject)
         .with_help_message("What is the body of the commit?")
