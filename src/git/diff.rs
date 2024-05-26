@@ -1,15 +1,19 @@
+use crate::cmd::execute;
+use anyhow::Result;
 use std::fmt::{Display, Formatter};
 
-use crate::cmd::execute;
-
-pub fn find_diff(staged_only: bool) -> Vec<Change> {
+pub fn diff(staged_only: bool) -> Result<Vec<Change>> {
     let diff = if staged_only {
-        execute("git --no-pager diff --cached --name-status").unwrap()
+        execute(
+            "git",
+            vec!["--no-pager", "diff", "--cached", "--name-status"],
+        )?
     } else {
-        execute("git --no-pager diff --name-status").unwrap()
+        execute("git", vec!["--no-pager", "diff", "--name-status"])?
     };
 
-    diff.lines()
+    let changes = diff
+        .lines()
         .map(|line| {
             let mut parts = line.split_whitespace();
             let kind = match parts.next() {
@@ -29,7 +33,9 @@ pub fn find_diff(staged_only: bool) -> Vec<Change> {
 
             Change { kind, path }
         })
-        .collect()
+        .collect();
+
+    Ok(changes)
 }
 
 pub struct Change {

@@ -4,6 +4,8 @@ use std::{
 };
 
 use anyhow::anyhow;
+use emoji::{Emoji, SemVer};
+use git::status::Status;
 use inquire::{validator::ValueRequiredValidator, Autocomplete};
 use regex::Regex;
 use serde::Deserialize;
@@ -15,46 +17,38 @@ pub mod helper;
 pub mod prompt;
 
 fn main() -> anyhow::Result<()> {
-    let unstaged_diff = find_diff(false);
-    let staged_diff = find_diff(true);
-    let status: String = status();
+    let emojis = Emoji::all();
 
-    if status.contains("Your branch is behind") {
-        if wants_pull {
-            execute_cmd("git pull")?;
-        }
-    }
+    let unstaged_diff = crate::git::diff::diff(false)?;
+    let staged_diff = crate::git::diff::diff(true)?;
 
     if staged_diff.is_empty() && unstaged_diff.is_empty() {
-        println!("Working directory clean. Nothing to commit.");
+        println!("Working directory is clean. Nothing to commit.");
         return Ok(());
     }
 
     if staged_diff.is_empty() {
-        unstaged_diff.iter().for_each(|change| {});
-
+        // TODO: Add support to stage files
         println!("No changes added to commit. Stage changes first.");
         return Ok(());
     }
 
-    let emojis: Vec<Emoji> = serde_json::from_str(include_str!("emojis.json")).unwrap();
-
+    let status: Status = crate::git::status::status()?;
+    let log = crate::git::log::log()?;
     let scope_regex = regex::Regex::new(r"\s\((\w+)\):")?;
-
-    let scopes: HashSet<String> =
-        execute_cmd("git --no-pager log --decorate=short --pretty=oneline")?
-            .lines()
-            .filter_map(|line| scope_regex.captures(line))
-            .filter_map(|capture| capture.get(1))
-            .map(|m| m.as_str().to_string())
-            .collect();
+    let scopes: HashSet<String> = log
+        .iter()
+        .map(|c| c.message.clone())
+        .flat_map(|line| {
+            scope_regex
+                .captures(&line)
+                .and_then(|c| c.get(1).map(|m| m.as_str().to_string()))
+        })
+        .collect();
 
     let intention = inquire::Select::new("Intention:", emojis)
         .with_help_message("What is intention behind the commit?")
         .prompt()?;
-
-    // Scan previous commits to find out all the scopes
-    let commit_scope_completer = CommitScopeCompleter::new(scopes.clone());
 
     let description = match intention.semver {
         Some(SemVer::Major) => "Describe the breaking change",
@@ -68,6 +62,8 @@ fn main() -> anyhow::Result<()> {
         .with_placeholder(description)
         .with_validator(ValueRequiredValidator::default())
         .prompt()?;
+
+    let mut scope = crate::prompt::scope::prompt(scopes)?;
 
     // If not empty, add a space before the scope
     if !scope.is_empty() {
@@ -84,6 +80,7 @@ fn main() -> anyhow::Result<()> {
     };
 
     let commented_status = status
+        .message
         .lines()
         .map(|l| format!("# {}", l))
         .collect::<Vec<String>>()
@@ -102,9 +99,7 @@ fn main() -> anyhow::Result<()> {
         .collect::<Vec<&str>>()
         .join("\n");
 
-    let command = &format!("git commit -m \"{}\"", message);
-
-    let result = execute_cmd(command)?;
+    crate::git::commit::commit(message)?;
 
     Ok(())
 }

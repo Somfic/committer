@@ -5,8 +5,8 @@ use anyhow::Result;
 use inquire::autocompletion::Replacement;
 use inquire::Autocomplete;
 
-pub fn prompt(scopes: Vec<String>) -> Result<String> {
-    let commit_scope_completer = CommitScopeCompleter::new(scopes.into_iter().collect());
+pub fn prompt(scopes: HashSet<String>) -> Result<String> {
+    let commit_scope_completer = CommitScopeCompleter::new(scopes);
 
     inquire::Text::new("Scope:")
         .with_help_message("What is the scope of the commit?")
