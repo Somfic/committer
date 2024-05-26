@@ -4,125 +4,51 @@ use std::{
 };
 
 use anyhow::anyhow;
+use emoji::{Emoji, SemVer};
+use git::status::Status;
 use inquire::{validator::ValueRequiredValidator, Autocomplete};
 use regex::Regex;
 use serde::Deserialize;
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-enum SemVer {
-    Major,
-    Minor,
-    Patch,
-}
-
-#[derive(Deserialize)]
-struct Emoji {
-    pub emoji: String,
-    pub entity: String,
-    pub code: String,
-    pub description: String,
-    pub name: String,
-    pub semver: Option<SemVer>,
-}
-
-#[derive(Debug)]
-enum ChangeKind {
-    Added,
-    Copied,
-    Deleted,
-    Modified,
-    Renamed,
-    Changed,
-    Unmerged,
-    Unknown,
-    Broken,
-}
-
-impl Display for ChangeKind {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        match self {
-            ChangeKind::Added => write!(f, "A"),
-            ChangeKind::Copied => write!(f, "C"),
-            ChangeKind::Deleted => write!(f, "D"),
-            ChangeKind::Modified => write!(f, "M"),
-            ChangeKind::Renamed => write!(f, "R"),
-            ChangeKind::Changed => write!(f, "T"),
-            ChangeKind::Unmerged => write!(f, "U"),
-            ChangeKind::Unknown => write!(f, "X"),
-            ChangeKind::Broken => write!(f, "B"),
-        }
-    }
-}
-
-struct Change {
-    pub kind: ChangeKind,
-    pub path: String,
-}
-
-impl Display for Emoji {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{} {}", self.emoji, self.description)
-    }
-}
+pub mod cmd;
+pub mod emoji;
+pub mod git;
+pub mod helper;
+pub mod prompt;
 
 fn main() -> anyhow::Result<()> {
-    let unstaged_diff = find_diff(false);
-    let staged_diff = find_diff(true);
-    let status: String = status();
+    let emojis = Emoji::all();
 
-    if status.contains("Your branch is behind") {
-        let behind_by_commit = Regex::new(r"Your branch is behind 'origin/[^']*' by (\d+) commit")?
-            .captures(&status)
-            .and_then(|capture| capture.get(1))
-            .and_then(|m| m.as_str().parse::<u32>().ok())
-            .unwrap_or(0);
-
-        let wants_pull = inquire::Confirm::new(
-            format!(
-                "You are behind by {} commits. Do you want to pull?",
-                behind_by_commit
-            )
-            .as_str(),
-        )
-        .with_default(false)
-        .prompt()?;
-
-        if wants_pull {
-            execute_cmd("git pull")?;
-        }
-    }
+    let unstaged_diff = crate::git::diff::diff(false)?;
+    let staged_diff = crate::git::diff::diff(true)?;
 
     if staged_diff.is_empty() && unstaged_diff.is_empty() {
-        println!("Working directory clean. Nothing to commit.");
+        println!("Working directory is clean. Nothing to commit.");
         return Ok(());
     }
 
     if staged_diff.is_empty() {
-        unstaged_diff.iter().for_each(|change| {});
-
+        // TODO: Add support to stage files
         println!("No changes added to commit. Stage changes first.");
         return Ok(());
     }
 
-    let emojis: Vec<Emoji> = serde_json::from_str(include_str!("emojis.json")).unwrap();
-
+    let status: Status = crate::git::status::status()?;
+    let log = crate::git::log::log()?;
     let scope_regex = regex::Regex::new(r"\s\((\w+)\):")?;
-
-    let scopes: HashSet<String> =
-        execute_cmd("git --no-pager log --decorate=short --pretty=oneline")?
-            .lines()
-            .filter_map(|line| scope_regex.captures(line))
-            .filter_map(|capture| capture.get(1))
-            .map(|m| m.as_str().to_string())
-            .collect();
+    let scopes: HashSet<String> = log
+        .iter()
+        .map(|c| c.message.clone())
+        .flat_map(|line| {
+            scope_regex
+                .captures(&line)
+                .and_then(|c| c.get(1).map(|m| m.as_str().to_string()))
+        })
+        .collect();
 
     let intention = inquire::Select::new("Intention:", emojis)
         .with_help_message("What is intention behind the commit?")
         .prompt()?;
-
-    // Scan previous commits to find out all the scopes
-    let commit_scope_completer = CommitScopeCompleter::new(scopes.clone());
 
     let description = match intention.semver {
         Some(SemVer::Major) => "Describe the breaking change",
@@ -137,12 +63,7 @@ fn main() -> anyhow::Result<()> {
         .with_validator(ValueRequiredValidator::default())
         .prompt()?;
 
-    let mut scope = inquire::Text::new("Scope:")
-        .with_help_message("What is the scope of the commit?")
-        .with_autocomplete(commit_scope_completer)
-        .with_placeholder("No scope")
-        .with_initial_value(scopes.clone().iter().last().unwrap_or(&"".to_string()))
-        .prompt()?;
+    let mut scope = crate::prompt::scope::prompt(scopes)?;
 
     // If not empty, add a space before the scope
     if !scope.is_empty() {
@@ -159,6 +80,7 @@ fn main() -> anyhow::Result<()> {
     };
 
     let commented_status = status
+        .message
         .lines()
         .map(|l| format!("# {}", l))
         .collect::<Vec<String>>()
@@ -177,92 +99,7 @@ fn main() -> anyhow::Result<()> {
         .collect::<Vec<&str>>()
         .join("\n");
 
-    let command = &format!("git commit -m \"{}\"", message);
-
-    let result = execute_cmd(command)?;
+    crate::git::commit::commit(message)?;
 
     Ok(())
-}
-
-#[derive(Clone, Default)]
-pub struct CommitScopeCompleter {
-    scopes: HashSet<String>,
-}
-
-impl CommitScopeCompleter {
-    pub fn new(scopes: HashSet<String>) -> Self {
-        Self { scopes }
-    }
-}
-
-impl Autocomplete for CommitScopeCompleter {
-    fn get_suggestions(&mut self, input: &str) -> Result<Vec<String>, inquire::CustomUserError> {
-        let suggestions = self
-            .scopes
-            .iter()
-            .filter(|scope| scope.contains(input))
-            .map(|scope| scope.to_string())
-            .collect();
-
-        Ok(suggestions)
-    }
-
-    fn get_completion(
-        &mut self,
-        input: &str,
-        highlighted_suggestion: Option<String>,
-    ) -> Result<inquire::autocompletion::Replacement, inquire::CustomUserError> {
-        let completion = highlighted_suggestion.unwrap_or_else(|| input.to_string());
-
-        Ok(Some(completion))
-    }
-}
-
-fn status() -> String {
-    execute_cmd("git remote update").unwrap();
-    execute_cmd("git --no-pager status").unwrap()
-}
-
-fn find_diff(staged_only: bool) -> Vec<Change> {
-    let diff = if staged_only {
-        execute_cmd("git --no-pager diff --cached --name-status").unwrap()
-    } else {
-        execute_cmd("git --no-pager diff --name-status").unwrap()
-    };
-
-    diff.lines()
-        .map(|line| {
-            let mut parts = line.split_whitespace();
-            let kind = match parts.next() {
-                Some("A") => ChangeKind::Added,
-                Some("C") => ChangeKind::Copied,
-                Some("D") => ChangeKind::Deleted,
-                Some("M") => ChangeKind::Modified,
-                Some("R") => ChangeKind::Renamed,
-                Some("T") => ChangeKind::Changed,
-                Some("U") => ChangeKind::Unmerged,
-                Some("X") => ChangeKind::Unknown,
-                Some("B") => ChangeKind::Broken,
-                _ => ChangeKind::Unknown,
-            };
-
-            let path = parts.next().unwrap_or_default().to_string();
-
-            Change { kind, path }
-        })
-        .collect()
-}
-
-fn execute_cmd(cmd: &str) -> anyhow::Result<String> {
-    let output = std::process::Command::new("sh")
-        .arg("-c")
-        .arg(cmd)
-        .output()?;
-
-    if output.status.success() {
-        Ok(std::str::from_utf8(&output.stdout)?.into())
-    } else {
-        let stderr = std::str::from_utf8(&output.stderr)?.to_string();
-        Err(anyhow!(stderr))
-    }
 }
