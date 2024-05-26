@@ -50,18 +50,11 @@ fn main() -> anyhow::Result<()> {
         .with_help_message("What is intention behind the commit?")
         .prompt()?;
 
-    let description = match intention.semver {
-        Some(SemVer::Major) => "Describe the breaking change",
-        Some(SemVer::Minor) => "Describe the new feature",
-        Some(SemVer::Patch) => "Describe the patch",
-        None => "Describe the chore",
-    };
-
-    let subject = inquire::Text::new("Subject:")
-        .with_help_message("Describe the commit in one line")
-        .with_placeholder(description)
-        .with_validator(ValueRequiredValidator::default())
-        .prompt()?;
+    // TODO: Add autocomplete with previously used commit subjects
+    let subject = crate::prompt::subject::prompt(
+        &intention,
+        log.iter().map(|m| m.message.clone()).collect(),
+    )?;
 
     let mut scope = crate::prompt::scope::prompt(scopes)?;
 
