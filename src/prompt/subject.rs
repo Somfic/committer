@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{
     emoji::{Emoji, SemVer},
     git::log::Commit,
@@ -30,7 +32,11 @@ struct CommitSubjectCompleter {
 
 impl CommitSubjectCompleter {
     pub fn new(previous_subjects: Vec<String>) -> Self {
-        Self { previous_subjects }
+        let unique_subjects: HashSet<String> = previous_subjects.into_iter().collect();
+
+        Self {
+            previous_subjects: unique_subjects.into_iter().collect(),
+        }
     }
 }
 
