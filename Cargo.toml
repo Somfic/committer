@@ -6,7 +6,7 @@ description = "A simple git commit message generator"
 license = "MIT"
 
 [dependencies]
-anyhow = "1.0.86"
+anyhow = "1.0"
 inquire = { version = "0.7.5", features = ["editor"] }
 regex = "1.10.4"
 serde = { version = "1.0.202", features = ["derive"] }
