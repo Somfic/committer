@@ -71,9 +71,9 @@ jobs:
 
       - name: Publish to crates.io
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        run: |
-          echo "CARGO_REGISTRY_TOKEN=${{ secrets.CARGO_REGISTRY_TOKEN }}" >> $GITHUB_ENV
-          cargo publish ${{ env.COMMITTER_IS_NEW == false && '--dry-run' || '' }} --allow-dirty
+        run: cargo publish ${{ env.COMMITTER_IS_NEW == false && '--dry-run' || '' }} --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Push tag to origin
         if: env.COMMITTER_IS_NEW == true && github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
