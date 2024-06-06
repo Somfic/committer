@@ -2,8 +2,8 @@
     {
       "emoji": "🎨",
       "entity": "&#x1f3a8;",
-      "code": ":art:",     
-      "description": "Improve structure / format of the code",
+      "code": ":art:",
+      "description": "Improve structure or format of the code",
       "name": "art",
       "semver": null
     },
@@ -107,7 +107,7 @@
       "emoji": "🔖",
       "entity": "&#x1f516;",
       "code": ":bookmark:",
-      "description": "Release / Version tags",
+      "description": "Release or Version tags",
       "name": "bookmark",
       "semver": null
     },
@@ -115,7 +115,7 @@
       "emoji": "🚨",
       "entity": "&#x1f6a8;",
       "code": ":rotating_light:",
-      "description": "Fix compiler / linter warnings",
+      "description": "Fix compiler or linter warnings",
       "name": "rotating-light",
       "semver": null
     },
@@ -371,7 +371,7 @@
       "emoji": "🚸",
       "entity": "&#128696;",
       "code": ":children_crossing:",
-      "description": "Improve user experience / usability",
+      "description": "Improve user experience or usability",
       "name": "children-crossing",
       "semver": "patch"
     },
@@ -507,7 +507,7 @@
       "emoji": "🧐",
       "entity": "&#x1F9D0;",
       "code": ":monocle_face:",
-      "description": "Data exploration/inspection",
+      "description": "Data exploration or inspection",
       "name": "monocle-face",
       "semver": null
     },
