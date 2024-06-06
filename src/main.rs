@@ -26,6 +26,7 @@ fn tag() -> anyhow::Result<()> {
     if let Some(tag) = crate::helper::calculate_new_tag_based_on_commits()? {
         crate::updater::cargo::set_version(&tag)?;
         crate::git::tag::tag(tag.to_string())?;
+        println!("{}", env::var("COMMITTER_CHANGELOG").unwrap_or_default());
 
         env::set_var("COMMITTER_IS_NEW", "true");
         println!("New version tagged as {}.", tag);
