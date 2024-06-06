@@ -1,5 +1,4 @@
-use std::io::Write;
-
+// use std::io::Write;
 use anyhow::Ok;
 
 pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Version>> {
@@ -72,22 +71,25 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
     Ok(Some(new_version))
 }
 
-pub fn set_github_env_var(name: &str, value: &str) -> anyhow::Result<()> {
-    let env = std::env::var("GITHUB_ENV");
+pub fn set_github_env_var(key: &str, value: &str) -> anyhow::Result<()> {
+    std::env::set_var(key, value);
+    Ok(())
 
-    if env.is_err() {
-        return Ok(());
-    }
+    // let env = std::env::var("GITHUB_ENV");
 
-    let env = env.unwrap();
+    // if env.is_err() {
+    //     return Ok(());
+    // }
 
-    println!("{}={}", name, value);
+    // let env = env.unwrap();
 
-    let mut file = std::fs::OpenOptions::new()
-        .append(true)
-        .open(env)
-        .map_err(|e| anyhow::anyhow!(e))?;
+    // println!("{}={}", name, value);
 
-    file.write_all(format!("{}={}", name, value).as_bytes())
-        .map_err(|e| anyhow::anyhow!(e))
+    // let mut file = std::fs::OpenOptions::new()
+    //     .append(true)
+    //     .open(env)
+    //     .map_err(|e| anyhow::anyhow!(e))?;
+
+    // file.write_all(format!("{}={}", name, value).as_bytes())
+    //     .map_err(|e| anyhow::anyhow!(e))
 }
