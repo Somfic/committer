@@ -99,8 +99,8 @@ jobs:
           echo "tagged=$(committer tag)" >> $GITHUB_ENV
           git push --tags
 
-      - name: Publish to crates.io\
-        if: contains(steps.tag.outputs.tagged, 'No new version to tag') == false
+      - name: Publish to crates.io
+        if: contains(env.tagged, 'No new version to tag') == false
         uses: katyo/publish-crates@v2
         with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
