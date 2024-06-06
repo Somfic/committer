@@ -8,6 +8,8 @@ on:
 jobs:
   tag:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Wait for CI to succeed
         uses: lewagon/wait-on-check-action@master
