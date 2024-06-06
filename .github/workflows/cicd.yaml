@@ -68,7 +68,6 @@ jobs:
           cargo run tag
           echo "COMMITTER_IS_NEW=$(cat .env/COMMITTER_IS_NEW)" >> $GITHUB_ENV
           echo "COMMITTER_TAG=$(cat .env/COMMITTER_TAG)" >> $GITHUB_ENV
-          echo "COMMITTER_CHANGELOG=$(cat .env/COMMITTER_CHANGELOG)" >> $GITHUB_ENV
 
       - name: Publish to crates.io
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
@@ -87,5 +86,5 @@ jobs:
           files: target/release/*.tar.gz
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ env.COMMITTER_TAG }}
-          body: ${{ env.COMMITTER_CHANGELOG }}
+          body_path: ".env/COMMITTER_CHANGELOG"
           draft: false
