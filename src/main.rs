@@ -3,7 +3,7 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Ok};
 use emoji::{Emoji, SemVer};
 use git::status::Status;
 use inquire::{validator::ValueRequiredValidator, Autocomplete};
@@ -17,6 +17,25 @@ pub mod helper;
 pub mod prompt;
 
 fn main() -> anyhow::Result<()> {
+    let args = std::env::args().skip(1).collect::<Vec<String>>();
+
+    if args.contains(&"tag".to_string()) {
+        tag()?;
+    } else {
+        commit()?;
+    }
+
+    Ok(())
+}
+
+fn tag() -> anyhow::Result<()> {
+    let new_tag = crate::helper::calculate_new_tag_based_on_commits()?;
+    crate::git::tag::tag(new_tag)?;
+
+    Ok(())
+}
+
+fn commit() -> anyhow::Result<()> {
     let emojis = Emoji::all();
 
     let unstaged_diff = crate::git::diff::diff(false)?;
