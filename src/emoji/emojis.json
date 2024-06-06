@@ -137,7 +137,7 @@
     },
     {
       "emoji": "⬇️",
-      "entity": "⬇️",c
+      "entity": "⬇️",
       "code": ":arrow_down:",
       "description": "Downgrade dependencies",
       "name": "arrow-down",
