@@ -73,6 +73,8 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
 }
 
 pub fn set_github_env_var(name: &str, value: &str) -> anyhow::Result<()> {
+    println!("Writing {} to .env/{}", value, name);
+
     std::fs::create_dir_all(".env")?;
     let mut file = std::fs::File::create(format!(".env/{}", name))?;
     file.write_all(value.as_bytes())?;
