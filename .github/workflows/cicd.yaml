@@ -68,15 +68,15 @@ jobs:
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         run: |
           committer tag
-          echo "COMMITTER_IS_NEW=${{ env.COMMITTER_IS_NEW }}" >> $GITHUB_ENV
-          echo "COMMITTER_TAG=${{ env.COMMITTER_TAG }}" >> $GITHUB_ENV
-          echo "COMMITTER_CHANGELOG=${{ env.COMMITTER_CHANGELOG }}" >> $GITHUB_ENV
+          echo "COMMITTER_IS_NEW=$(cat .env/COMMITTER_IS_NEW)" >> $GITHUB_ENV
+          echo "COMMITTER_TAG=$(cat .env/COMMITTER_TAG)" >> $GITHUB_ENV
+          echo "COMMITTER_CHANGELOG=$(cat .env/COMMITTER_CHANGELOG)" >> $GITHUB_ENV
 
       - name: Publish to crates.io
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         run: |
           echo "CARGO_REGISTRY_TOKEN=${{ secrets.CARGO_REGISTRY_TOKEN }}" >> $GITHUB_ENV
-          cargo publish --dry-run ${{ env.COMMITTER_IS_NEW == true }} --allow-dirty
+          cargo publish ${{ env.COMMITTER_IS_NEW == false && '--dry-run' || '' }} --allow-dirty
 
       - name: Push tag to origin
         if: env.COMMITTER_IS_NEW == true && github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')

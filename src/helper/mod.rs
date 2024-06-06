@@ -1,4 +1,5 @@
-// use std::io::Write;
+use std::io::Write;
+
 use anyhow::Ok;
 
 pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Version>> {
@@ -71,25 +72,10 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
     Ok(Some(new_version))
 }
 
-pub fn set_github_env_var(key: &str, value: &str) -> anyhow::Result<()> {
-    std::env::set_var(key, value);
+pub fn set_github_env_var(name: &str, value: &str) -> anyhow::Result<()> {
+    std::fs::create_dir_all(".env")?;
+    let mut file = std::fs::File::create(format!(".env/{}", name))?;
+    file.write_all(value.as_bytes())?;
+
     Ok(())
-
-    // let env = std::env::var("GITHUB_ENV");
-
-    // if env.is_err() {
-    //     return Ok(());
-    // }
-
-    // let env = env.unwrap();
-
-    // println!("{}={}", name, value);
-
-    // let mut file = std::fs::OpenOptions::new()
-    //     .append(true)
-    //     .open(env)
-    //     .map_err(|e| anyhow::anyhow!(e))?;
-
-    // file.write_all(format!("{}={}", name, value).as_bytes())
-    //     .map_err(|e| anyhow::anyhow!(e))
 }
