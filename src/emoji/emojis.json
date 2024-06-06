@@ -43,7 +43,7 @@
       "emoji": "✨",
       "entity": "&#x2728;",
       "code": ":sparkles:",
-      "description": "Add new features",
+      "description": "Add new feature",
       "name": "sparkles",
       "semver": "minor"
     },
@@ -131,7 +131,7 @@
       "emoji": "💚",
       "entity": "&#x1f49a;",
       "code": ":green_heart:",
-      "description": "Fix CI Build",
+      "description": "Fix CI workflow",
       "name": "green-heart",
       "semver": null
     },
@@ -163,7 +163,7 @@
       "emoji": "👷",
       "entity": "&#x1f477;",
       "code": ":construction_worker:",
-      "description": "Add or update CI build system",
+      "description": "Add or update CI build workflow",
       "name": "construction-worker",
       "semver": null
     },
