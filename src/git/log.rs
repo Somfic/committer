@@ -35,37 +35,40 @@ pub fn log() -> Result<Vec<Commit>> {
         .collect())
 }
 
-pub fn majors_since(tag: &String) -> Result<Vec<String>> {
+pub fn majors_since(tag: &String) -> Result<Vec<Commit>> {
     since(tag, "semver: major")
 }
 
-pub fn minors_since(tag: &String) -> Result<Vec<String>> {
+pub fn minors_since(tag: &String) -> Result<Vec<Commit>> {
     since(tag, "semver: minor")
 }
 
-pub fn patches_since(tag: &String) -> Result<Vec<String>> {
+pub fn patches_since(tag: &String) -> Result<Vec<Commit>> {
     since(tag, "semver: patch")
 }
 
-fn since(tag: &String, grep: &str) -> Result<Vec<String>> {
+fn since(tag: &String, grep: &str) -> Result<Vec<Commit>> {
     Ok(execute(
         "git",
         vec![
             "--no-pager",
             "log",
+            &format!("--grep={}", grep),
             "--all",
-            &format!("--grep=\"{}\"", grep),
-            "--oneline",
-            tag,
-            "..",
-            "--",
+            "--decorate=short",
+            "--pretty=format:%s",
+            &format!("{}..HEAD", tag),
         ],
     )?
     .lines()
-    .map(|line| line.to_string())
+    .filter(|line| !line.is_empty())
+    .map(|line| Commit {
+        message: line.to_string(),
+    })
     .collect())
 }
 
+#[derive(Debug)]
 pub struct Commit {
     pub message: String,
 }

@@ -5,31 +5,16 @@ use semver::Version;
 use crate::cmd::execute;
 
 pub fn latest() -> anyhow::Result<String> {
-    // Get the latest tag from the remote repository
-    let output = execute(
-        "git",
-        vec!["--no-pager", "ls-remote", "--tags", "--sort=-v:refname"],
-    )?;
-    let tag = output
-        .lines()
-        .next()
-        .unwrap()
-        .split('\t')
-        .skip(1)
-        .next()
-        .unwrap()
-        .split("refs/tags/")
-        .skip(1)
-        .next()
-        .unwrap()
-        .to_string();
+    let result = execute("git", vec!["describe", "--tags", "--abbrev=0"])?;
 
-    Ok(tag)
+    Ok(result.trim().to_string())
 }
 
 pub fn tag(tag: String) -> anyhow::Result<()> {
-    execute("git", vec!["tag", &format!("v{}", tag)])?;
-    execute("git", vec!["push", "origin", &format!("v{}", tag)])?;
+    execute("git", vec!["tag", &tag])?;
+    execute("git", vec!["push", "origin", &tag])?;
+
+    println!("New version tagged as {}", tag);
 
     Ok(())
 }

@@ -10,9 +10,15 @@ pub fn execute(program: &str, args: Vec<&str>) -> Result<String> {
         .map_err(|e| anyhow!(e))?;
 
     if output.status.success() {
-        Ok(std::str::from_utf8(&output.stdout)?.into())
+        let stdout = std::str::from_utf8(&output.stdout)?;
+
+        Ok(stdout.to_string())
     } else {
         let stderr = std::str::from_utf8(&output.stderr)?.to_string();
-        Err(anyhow!(stderr).context(format!("Failed to execute command: {} {:?}", program, args)))
+        Err(anyhow!(stderr).context(format!(
+            "Failed to execute command: {} {}",
+            program,
+            args.join(" ")
+        )))
     }
 }

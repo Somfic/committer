@@ -1,6 +1,6 @@
 use anyhow::Ok;
 
-pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<String> {
+pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Version>> {
     let latest_tag = crate::git::tag::latest()?;
 
     // Clean up tag by adding patch version if it's missing
@@ -8,13 +8,35 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<String> {
         format!("{}.0", latest_tag)
     } else {
         latest_tag.to_string()
-    };
+    }
+    .replace("v", "");
 
     let latest_version = semver::Version::parse(&latest_tag_clean)?;
 
     let patches_delta = crate::git::log::patches_since(&latest_tag.to_string())?;
     let minors_delta = crate::git::log::minors_since(&latest_tag.to_string())?;
     let majors_delta = crate::git::log::majors_since(&latest_tag.to_string())?;
+
+    if majors_delta.len() > 0 {
+        println!("Major changes:");
+        for commit in &majors_delta {
+            println!("  - {}", commit.message);
+        }
+    }
+
+    if minors_delta.len() > 0 {
+        println!("Minor changes:");
+        for commit in &minors_delta {
+            println!("  - {}", commit.message);
+        }
+    }
+
+    if patches_delta.len() > 0 {
+        println!("Patch changes:");
+        for commit in &patches_delta {
+            println!("  - {}", commit.message);
+        }
+    }
 
     let mut patches = latest_version.patch;
     let mut minors = latest_version.minor;
@@ -34,8 +56,8 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<String> {
     let new_version = semver::Version::new(majors, minors, patches);
 
     if new_version == latest_version {
-        println!("No new commits since the latest tag.");
+        return Ok(None);
     }
 
-    Ok(new_version.to_string())
+    Ok(Some(new_version))
 }

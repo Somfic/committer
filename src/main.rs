@@ -15,6 +15,7 @@ pub mod emoji;
 pub mod git;
 pub mod helper;
 pub mod prompt;
+pub mod updater;
 
 fn main() -> anyhow::Result<()> {
     let args = std::env::args().skip(1).collect::<Vec<String>>();
@@ -29,8 +30,12 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn tag() -> anyhow::Result<()> {
-    let new_tag = crate::helper::calculate_new_tag_based_on_commits()?;
-    crate::git::tag::tag(new_tag)?;
+    if let Some(tag) = crate::helper::calculate_new_tag_based_on_commits()? {
+        crate::updater::cargo::set_version(&tag)?;
+        crate::git::tag::tag(tag.to_string())?;
+    } else {
+        println!("No new version to tag.");
+    }
 
     Ok(())
 }
