@@ -68,9 +68,9 @@ jobs:
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         run: |
           committer tag
-          echo "COMMITTER_IS_NEW=$(cat .env/COMMITTER_IS_NEW)" >> $GITHUB_ENV
-          echo "COMMITTER_TAG=$(cat .env/COMMITTER_TAG)" >> $GITHUB_ENV
-          echo "COMMITTER_CHANGELOG=$(cat .env/COMMITTER_CHANGELOG)" >> $GITHUB_ENV
+          echo "COMMITTER_IS_NEW=${{ env.COMMITTER_IS_NEW }}" >> $GITHUB_ENV
+          echo "COMMITTER_TAG=${{ env.COMMITTER_TAG }}" >> $GITHUB_ENV
+          echo "COMMITTER_CHANGELOG=${{ env.COMMITTER_CHANGELOG }}" >> $GITHUB_ENV
 
       - name: Publish to crates.io
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
