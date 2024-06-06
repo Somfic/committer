@@ -35,7 +35,7 @@
       "emoji": "🚑️",
       "entity": "&#128657;",
       "code": ":ambulance:",
-      "description": "Critical hotfix",
+      "description": "Hotfix critical issue",
       "name": "ambulance",
       "semver": "patch"
     },
