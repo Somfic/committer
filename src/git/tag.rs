@@ -11,7 +11,5 @@ pub fn latest() -> anyhow::Result<String> {
 pub fn tag(tag: String) -> anyhow::Result<()> {
     execute("git", vec!["tag", &tag])?;
 
-    println!("New version tagged as {}", tag);
-
     Ok(())
 }

@@ -17,27 +17,6 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
     let minors_delta = crate::git::log::minors_since(&latest_tag.to_string())?;
     let majors_delta = crate::git::log::majors_since(&latest_tag.to_string())?;
 
-    if !majors_delta.is_empty() {
-        println!("Major changes:");
-        for commit in &majors_delta {
-            println!("  - {}", commit.message);
-        }
-    }
-
-    if !minors_delta.is_empty() {
-        println!("Minor changes:");
-        for commit in &minors_delta {
-            println!("  - {}", commit.message);
-        }
-    }
-
-    if !patches_delta.is_empty() {
-        println!("Patch changes:");
-        for commit in &patches_delta {
-            println!("  - {}", commit.message);
-        }
-    }
-
     let mut patches = latest_version.patch;
     let mut minors = latest_version.minor;
     let mut majors = latest_version.major;
