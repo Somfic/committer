@@ -61,6 +61,7 @@ jobs:
     needs: ci
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
+    permissions: write-all
     steps:
       - name: Check out
         uses: actions/checkout@v4

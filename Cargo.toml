@@ -1,6 +1,6 @@
 [package]
 name = "committer"
-version = "0.6.1"
+version = "0.6.2"
 edition = "2021"
 description = "A simple git commit message generator"
 license = "MIT"
