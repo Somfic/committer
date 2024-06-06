@@ -99,4 +99,6 @@ jobs:
           git push --follow-tags
 
       - name: Publish to crates.io
-        run: cargo publish
+        uses: katyo/publish-crates@v2
+        with:
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
