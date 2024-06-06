@@ -27,10 +27,8 @@ fn tag() -> anyhow::Result<()> {
         crate::updater::cargo::set_version(&tag)?;
         crate::git::tag::tag(tag.to_string())?;
         // Set github action output
-        println!("::set-output name=tagged::true");
     } else {
         println!("No new version to tag.");
-        println!("::set-output name=tagged::false");
     }
 
     Ok(())
