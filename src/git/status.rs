@@ -1,5 +1,5 @@
 use crate::cmd::execute;
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub struct Status {
     pub commits_behind: u32,

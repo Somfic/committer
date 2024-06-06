@@ -1,11 +1,7 @@
-use std::collections::HashSet;
-
-use crate::{
-    emoji::{Emoji, SemVer},
-    git::log::Commit,
-};
+use crate::emoji::{Emoji, SemVer};
 use anyhow::Result;
 use inquire::{autocompletion::Replacement, validator::ValueRequiredValidator, Autocomplete};
+use std::collections::HashSet;
 
 pub fn prompt(intention: &Emoji, previous_subjects: Vec<String>) -> Result<String> {
     let description = match intention.semver {

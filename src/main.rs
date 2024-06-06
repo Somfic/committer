@@ -1,14 +1,7 @@
-use std::{
-    collections::HashSet,
-    fmt::{self, Display, Formatter},
-};
-
-use anyhow::{anyhow, Ok};
+use anyhow::Ok;
 use emoji::{Emoji, SemVer};
 use git::status::Status;
-use inquire::{validator::ValueRequiredValidator, Autocomplete};
-use regex::Regex;
-use serde::Deserialize;
+use std::collections::HashSet;
 
 pub mod cmd;
 pub mod emoji;

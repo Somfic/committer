@@ -1,7 +1,3 @@
-use std::fmt::format;
-
-use semver::Version;
-
 use crate::cmd::execute;
 
 pub fn latest() -> anyhow::Result<String> {

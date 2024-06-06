@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use anyhow::anyhow;
 use anyhow::Result;
 

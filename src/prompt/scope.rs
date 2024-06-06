@@ -1,9 +1,8 @@
-use std::collections::HashSet;
-
 use anyhow::anyhow;
 use anyhow::Result;
 use inquire::autocompletion::Replacement;
 use inquire::Autocomplete;
+use std::collections::HashSet;
 
 pub fn prompt(scopes: HashSet<String>) -> Result<String> {
     let commit_scope_completer = CommitScopeCompleter::new(scopes);

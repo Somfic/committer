@@ -1,6 +1,8 @@
 use std::fs;
 
 pub fn set_version(version: &semver::Version) -> anyhow::Result<()> {
+    // TODO: Only update Cargo.toml files that are not git ignored
+
     // Find all Cargo.toml files in the repository
     let cargo_files = fs::read_dir(".")?
         .filter_map(|entry| entry.ok())
