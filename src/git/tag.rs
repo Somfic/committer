@@ -8,7 +8,6 @@ pub fn latest() -> anyhow::Result<String> {
 
 pub fn tag(tag: String) -> anyhow::Result<()> {
     execute("git", vec!["tag", &tag])?;
-    execute("git", vec!["push", "origin", &tag])?;
 
     println!("New version tagged as {}", tag);
 
