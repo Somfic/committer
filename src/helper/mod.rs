@@ -17,6 +17,32 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
     let minors_delta = crate::git::log::minors_since(&latest_tag.to_string())?;
     let majors_delta = crate::git::log::majors_since(&latest_tag.to_string())?;
 
+    // String builder
+    let mut changelog = String::new();
+
+    if !majors_delta.is_empty() {
+        changelog.push_str(&format!("## Breaking changes"));
+        for commit in &majors_delta {
+            changelog.push_str(&format!("\n- {}", commit.message));
+        }
+    }
+
+    if !minors_delta.is_empty() {
+        changelog.push_str(&format!("\n\n## New features"));
+        for commit in &minors_delta {
+            changelog.push_str(&format!("\n- {}", commit.message));
+        }
+    }
+
+    if !patches_delta.is_empty() {
+        changelog.push_str(&format!("\n\n## Bug fixes"));
+        for commit in &patches_delta {
+            changelog.push_str(&format!("\n- {}", commit.message));
+        }
+    }
+
+    std::env::set_var("COMMITTER_CHANGELOG", changelog);
+
     let mut patches = latest_version.patch;
     let mut minors = latest_version.minor;
     let mut majors = latest_version.major;

@@ -98,11 +98,21 @@ jobs:
         run: echo "tagged=$(committer tag)" >> $GITHUB_ENV
 
       - name: Publish to crates.io
-        if: contains(env.tagged, 'No new version to tag') == false
-        uses: katyo/publish-crates@v2
-        with:
-          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          echo "CARGO_REGISTRY_TOKEN=${{ secrets.CARGO_REGISTRY_TOKEN }}" >> $GITHUB_ENV
+          cargo publish --dry-run ${{ env.COMMITTER_IS_NEW == true }} --allow-dirty
 
       - name: Push tag to origin
-        if: contains(env.tagged, 'No new version to tag') == false
+        if: env.COMMITTER_IS_NEW == true
         run: git push --tags origin
+
+      - name: Create release
+        if: env.COMMITTER_IS_NEW == true
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/release/*.tar.gz
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ env.COMMITTER_TAG }}
+          body: ${{ env.COMMITTER_CHANGELOG }}
+          draft: false
+          prerelease: ${{ env.COMMITTER_IS_PRERELEASE == true }}

@@ -1,7 +1,7 @@
 use anyhow::Ok;
 use emoji::{Emoji, SemVer};
 use git::status::Status;
-use std::collections::HashSet;
+use std::{collections::HashSet, env};
 
 pub mod cmd;
 pub mod emoji;
@@ -26,8 +26,11 @@ fn tag() -> anyhow::Result<()> {
     if let Some(tag) = crate::helper::calculate_new_tag_based_on_commits()? {
         crate::updater::cargo::set_version(&tag)?;
         crate::git::tag::tag(tag.to_string())?;
+
+        env::set_var("COMMITTER_IS_NEW", "true");
         println!("New version tagged as {}.", tag);
     } else {
+        env::set_var("COMMITTER_IS_NEW", "true");
         println!("No new version to tag.");
     }
 
