@@ -5,6 +5,8 @@ on:
 
 jobs:
   cicd:
+    concurrency:
+      group: ${{ github.workflow }}
     name: ci/cd
     runs-on: ubuntu-latest
     steps:
