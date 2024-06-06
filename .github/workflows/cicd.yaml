@@ -9,6 +9,7 @@ jobs:
       group: ${{ github.workflow }}
     name: ci/cd
     runs-on: ubuntu-latest
+    permissions: write-all
     steps:
       - name: Check out
         uses: actions/checkout@v4
