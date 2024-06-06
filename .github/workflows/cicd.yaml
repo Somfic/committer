@@ -1,10 +1,10 @@
-name: CI
+name: CI/CD
 on:
     - push
     - pull_request
 
 jobs:
-  check:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -56,3 +56,44 @@ jobs:
 
       - name: Test
         run: cargo test
+
+  cd:
+    needs: ci
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+
+      - name: Set up cargo cache
+        uses: actions/cache@v4
+        continue-on-error: false
+        with:
+          save-always: true
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/            
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install committer tool
+        run: cargo install --locked committer || true
+
+      - name: Tag
+        run: |
+          committer tag
+          git push --follow-tags
+
+      - name: Publish to crates.io
+        run: cargo publish
