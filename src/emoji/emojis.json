@@ -499,7 +499,7 @@
       "emoji": "🩹",
       "entity": "&#x1FA79;",
       "code": ":adhesive_bandage:",
-      "description": "Simple fix for a non-critical issue",
+      "description": "Fix for a non-critical issue",
       "name": "adhesive-bandage",
       "semver": "patch"
     },
