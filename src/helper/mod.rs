@@ -9,7 +9,7 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
     } else {
         latest_tag.to_string()
     }
-    .replace("v", "");
+    .replace('v', "");
 
     let latest_version = semver::Version::parse(&latest_tag_clean)?;
 
