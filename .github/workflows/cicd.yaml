@@ -94,8 +94,7 @@ jobs:
         run: cargo install --locked committer || true
 
       - name: Tag
-        id: tag
-        run: echo "tagged=$(committer tag)" >> $GITHUB_ENV
+        run: committer tag
 
       - name: Publish to crates.io
         run: |

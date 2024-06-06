@@ -1,3 +1,5 @@
+use std::{fmt::format, io::Write};
+
 use anyhow::Ok;
 
 pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Version>> {
@@ -44,7 +46,7 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
         changelog.push_str("\n\n");
     }
 
-    std::env::set_var("COMMITTER_CHANGELOG", changelog);
+    set_github_env_var("COMMITTER_CHANGELOG", &changelog)?;
 
     let mut patches = latest_version.patch;
     let mut minors = latest_version.minor;
@@ -68,4 +70,24 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
     }
 
     Ok(Some(new_version))
+}
+
+pub fn set_github_env_var(name: &str, value: &str) -> anyhow::Result<()> {
+    let env = std::env::var("GITHUB_ENV");
+
+    if env.is_err() {
+        return Ok(());
+    }
+
+    let env = env.unwrap();
+
+    println!("{}={}", name, value);
+
+    let mut file = std::fs::OpenOptions::new()
+        .append(true)
+        .open(env)
+        .map_err(|e| anyhow::anyhow!(e))?;
+
+    file.write_all(format!("{}={}", name, value).as_bytes())
+        .map_err(|e| anyhow::anyhow!(e))
 }
