@@ -117,7 +117,7 @@ fn commit() -> anyhow::Result<()> {
 
     crate::git::commit::commit(message)?;
 
-    let wants_to_push = crate::prompt::push::prompt(&status)?;
+    let wants_to_push = crate::prompt::push::prompt()?;
     if wants_to_push {
         crate::git::push::push()?;
     }
