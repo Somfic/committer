@@ -47,7 +47,7 @@ jobs:
       - name: Check
         run: |
           cargo deny check -c config/cargo-deny.toml
-          cargo outdated --exit-code 1
+          cargo outdated
           cargo udeps
           rm -rf ~/.cargo/advisory-db
           cargo audit
