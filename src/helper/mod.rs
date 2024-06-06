@@ -1,4 +1,4 @@
-use std::{fmt::format, io::Write};
+use std::io::Write;
 
 use anyhow::Ok;
 
