@@ -26,8 +26,11 @@ fn tag() -> anyhow::Result<()> {
     if let Some(tag) = crate::helper::calculate_new_tag_based_on_commits()? {
         crate::updater::cargo::set_version(&tag)?;
         crate::git::tag::tag(tag.to_string())?;
+        // Set github action output
+        println!("::set-output name=tagged::true");
     } else {
         println!("No new version to tag.");
+        println!("::set-output name=tagged::false");
     }
 
     Ok(())
