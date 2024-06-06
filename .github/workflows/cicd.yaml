@@ -96,7 +96,7 @@ jobs:
       - name: Tag
         run: |
           committer tag
-          git push --follow-tags
+          git push --tags
 
       - name: Publish to crates.io
         uses: katyo/publish-crates@v2
