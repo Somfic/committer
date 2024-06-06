@@ -21,24 +21,27 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
     let mut changelog = String::new();
 
     if !majors_delta.is_empty() {
-        changelog.push_str(&format!("## Breaking changes"));
+        changelog.push_str("## 🚨 Breaking changes");
         for commit in &majors_delta {
             changelog.push_str(&format!("\n- {}", commit.message));
         }
+        changelog.push_str("\n\n");
     }
 
     if !minors_delta.is_empty() {
-        changelog.push_str(&format!("\n\n## New features"));
+        changelog.push_str("## 🚀 New features");
         for commit in &minors_delta {
             changelog.push_str(&format!("\n- {}", commit.message));
         }
+        changelog.push_str("\n\n");
     }
 
     if !patches_delta.is_empty() {
-        changelog.push_str(&format!("\n\n## Bug fixes"));
+        changelog.push_str("## 🩹 Fixes");
         for commit in &patches_delta {
             changelog.push_str(&format!("\n- {}", commit.message));
         }
+        changelog.push_str("\n\n");
     }
 
     std::env::set_var("COMMITTER_CHANGELOG", changelog);
