@@ -105,7 +105,7 @@ fn commit() -> anyhow::Result<()> {
 
     let message = message
         .lines()
-        .filter(|line| !line.starts_with("#"))
+        .filter(|line| !line.starts_with('#'))
         .collect::<Vec<&str>>()
         .join("\n");
 
