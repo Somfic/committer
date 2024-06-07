@@ -48,30 +48,29 @@ pub fn patches_since(tag: &String) -> Result<Vec<Commit>> {
 }
 
 fn since(tag: &String, grep: &str) -> Result<Vec<Commit>> {
-    let since = if tag == "0.0.0" {
-        "".to_string()
-    } else {
-        format!("{}..HEAD", tag).to_string()
+    let grep = format!("--grep={}", grep);
+    let since = format!("{}..HEAD", tag);
+
+    let mut args = vec![
+        "--no-pager",
+        "log",
+        &grep,
+        "--all",
+        "--decorate=short",
+        "--pretty=format:%s",
+    ];
+
+    if tag != "0.0.0" {
+        args.push(&since);
     };
 
-    Ok(execute(
-        "git",
-        vec![
-            "--no-pager",
-            "log",
-            &format!("--grep={}", grep),
-            "--all",
-            "--decorate=short",
-            "--pretty=format:%s",
-            since.as_str(),
-        ],
-    )?
-    .lines()
-    .filter(|line| !line.is_empty())
-    .map(|line| Commit {
-        message: line.to_string(),
-    })
-    .collect())
+    Ok(execute("git", args)?
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(|line| Commit {
+            message: line.to_string(),
+        })
+        .collect())
 }
 
 #[derive(Debug)]
