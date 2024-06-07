@@ -48,6 +48,12 @@ pub fn patches_since(tag: &String) -> Result<Vec<Commit>> {
 }
 
 fn since(tag: &String, grep: &str) -> Result<Vec<Commit>> {
+    let since = if tag == "0.0.0" {
+        "".to_string()
+    } else {
+        format!("{}..HEAD", tag).to_string()
+    };
+
     Ok(execute(
         "git",
         vec![
@@ -57,7 +63,7 @@ fn since(tag: &String, grep: &str) -> Result<Vec<Commit>> {
             "--all",
             "--decorate=short",
             "--pretty=format:%s",
-            &format!("{}..HEAD", tag),
+            since.as_str(),
         ],
     )?
     .lines()
