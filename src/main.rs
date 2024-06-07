@@ -14,18 +14,15 @@ pub mod updater;
 fn main() -> anyhow::Result<()> {
     let args = std::env::args().skip(1).collect::<Vec<String>>();
 
+    if crate::git::status::status().is_err() {
+        println!("Not in a git repository.");
+        return Ok(());
+    }
+
     if args.contains(&"tag".to_string()) {
         tag()?;
     } else {
-        let result = commit();
-
-        if let Err(e) = result {
-            if e.to_string().contains("Not a git repository") {
-                println!("Not a git repository.");
-            } else {
-                return Err(e);
-            }
-        }
+        commit()?;
     }
 
     Ok(())
