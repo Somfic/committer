@@ -17,7 +17,15 @@ fn main() -> anyhow::Result<()> {
     if args.contains(&"tag".to_string()) {
         tag()?;
     } else {
-        commit()?;
+        let result = commit();
+
+        if let Err(e) = result {
+            if e.to_string().contains("Not a git repository") {
+                println!("Not a git repository.");
+            } else {
+                return Err(e);
+            }
+        }
     }
 
     Ok(())
