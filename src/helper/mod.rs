@@ -28,7 +28,7 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
             .keys()
             .filter(|s| !majors_delta.get(*s).unwrap().is_empty())
         {
-            let scope = scope
+            let display_scope = scope
                 .chars()
                 .enumerate()
                 .fold(String::new(), |mut acc, (i, c)| {
@@ -39,8 +39,8 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
                     }
                     acc
                 });
-            changelog.push_str(&format!("\n### {}", scope));
-            for commit in majors_delta.get(&scope).unwrap() {
+            changelog.push_str(&format!("\n### {}", display_scope));
+            for commit in majors_delta.get(scope).unwrap() {
                 changelog.push_str(&format!(
                     "\n- {} {}",
                     commit.emoji.as_ref().unwrap_or(&"".to_string()),
@@ -58,7 +58,7 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
             .filter(|s| !minors_delta.get(*s).unwrap().is_empty())
         {
             // Push scope, make it start with an uppercase letter
-            let scope = scope
+            let display_scope = scope
                 .chars()
                 .enumerate()
                 .fold(String::new(), |mut acc, (i, c)| {
@@ -69,8 +69,8 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
                     }
                     acc
                 });
-            changelog.push_str(&format!("\n### {}", scope));
-            for commit in minors_delta.get(&scope).unwrap() {
+            changelog.push_str(&format!("\n### {}", display_scope));
+            for commit in minors_delta.get(scope).unwrap() {
                 changelog.push_str(&format!(
                     "\n- {} {}",
                     commit.emoji.as_ref().unwrap_or(&"".to_string()),
@@ -87,7 +87,7 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
             .keys()
             .filter(|s| !patches_delta.get(*s).unwrap().is_empty())
         {
-            let scope = scope
+            let display_scope = scope
                 .chars()
                 .enumerate()
                 .fold(String::new(), |mut acc, (i, c)| {
@@ -98,8 +98,8 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
                     }
                     acc
                 });
-            changelog.push_str(&format!("\n### {}", scope));
-            for commit in patches_delta.get(&scope).unwrap() {
+            changelog.push_str(&format!("\n### {}", display_scope));
+            for commit in patches_delta.get(scope).unwrap() {
                 changelog.push_str(&format!(
                     "\n- {} {}",
                     commit.emoji.as_ref().unwrap_or(&"".to_string()),
