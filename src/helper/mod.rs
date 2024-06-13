@@ -30,7 +30,11 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
         {
             changelog.push_str(&format!("\n### {}", scope));
             for commit in majors_delta.get(scope).unwrap() {
-                changelog.push_str(&format!("\n- {}", commit.message));
+                changelog.push_str(&format!(
+                    "\n- {} {}",
+                    commit.emoji.as_ref().unwrap_or(&"".to_string()),
+                    commit.message
+                ));
             }
         }
         changelog.push_str("\n\n");
@@ -44,7 +48,11 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
         {
             changelog.push_str(&format!("\n### {}", scope));
             for commit in minors_delta.get(scope).unwrap() {
-                changelog.push_str(&format!("\n- {}", commit.message));
+                changelog.push_str(&format!(
+                    "\n- {} {}",
+                    commit.emoji.as_ref().unwrap_or(&"".to_string()),
+                    commit.message
+                ));
             }
         }
         changelog.push_str("\n\n");
@@ -58,7 +66,11 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
         {
             changelog.push_str(&format!("\n### {}", scope));
             for commit in patches_delta.get(scope).unwrap() {
-                changelog.push_str(&format!("\n- {}", commit.message));
+                changelog.push_str(&format!(
+                    "\n- {} {}",
+                    commit.emoji.as_ref().unwrap_or(&"".to_string()),
+                    commit.message
+                ));
             }
         }
         changelog.push_str("\n\n");
