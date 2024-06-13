@@ -28,8 +28,19 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
             .keys()
             .filter(|s| !majors_delta.get(*s).unwrap().is_empty())
         {
+            let scope = scope
+                .chars()
+                .enumerate()
+                .fold(String::new(), |mut acc, (i, c)| {
+                    if i == 0 {
+                        acc.push(c.to_uppercase().next().unwrap());
+                    } else {
+                        acc.push(c);
+                    }
+                    acc
+                });
             changelog.push_str(&format!("\n### {}", scope));
-            for commit in majors_delta.get(scope).unwrap() {
+            for commit in majors_delta.get(&scope).unwrap() {
                 changelog.push_str(&format!(
                     "\n- {} {}",
                     commit.emoji.as_ref().unwrap_or(&"".to_string()),
@@ -46,8 +57,20 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
             .keys()
             .filter(|s| !minors_delta.get(*s).unwrap().is_empty())
         {
+            // Push scope, make it start with an uppercase letter
+            let scope = scope
+                .chars()
+                .enumerate()
+                .fold(String::new(), |mut acc, (i, c)| {
+                    if i == 0 {
+                        acc.push(c.to_uppercase().next().unwrap());
+                    } else {
+                        acc.push(c);
+                    }
+                    acc
+                });
             changelog.push_str(&format!("\n### {}", scope));
-            for commit in minors_delta.get(scope).unwrap() {
+            for commit in minors_delta.get(&scope).unwrap() {
                 changelog.push_str(&format!(
                     "\n- {} {}",
                     commit.emoji.as_ref().unwrap_or(&"".to_string()),
@@ -64,8 +87,19 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
             .keys()
             .filter(|s| !patches_delta.get(*s).unwrap().is_empty())
         {
+            let scope = scope
+                .chars()
+                .enumerate()
+                .fold(String::new(), |mut acc, (i, c)| {
+                    if i == 0 {
+                        acc.push(c.to_uppercase().next().unwrap());
+                    } else {
+                        acc.push(c);
+                    }
+                    acc
+                });
             changelog.push_str(&format!("\n### {}", scope));
-            for commit in patches_delta.get(scope).unwrap() {
+            for commit in patches_delta.get(&scope).unwrap() {
                 changelog.push_str(&format!(
                     "\n- {} {}",
                     commit.emoji.as_ref().unwrap_or(&"".to_string()),
