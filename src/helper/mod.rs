@@ -24,24 +24,42 @@ pub fn calculate_new_tag_based_on_commits() -> anyhow::Result<Option<semver::Ver
 
     if !majors_delta.is_empty() {
         changelog.push_str("## 🚨 Breaking changes");
-        for commit in &majors_delta {
-            changelog.push_str(&format!("\n- {}", commit.message));
+        for scope in majors_delta
+            .keys()
+            .filter(|s| !majors_delta.get(*s).unwrap().is_empty())
+        {
+            changelog.push_str(&format!("\n### {}", scope));
+            for commit in majors_delta.get(scope).unwrap() {
+                changelog.push_str(&format!("\n- {}", commit.message));
+            }
         }
         changelog.push_str("\n\n");
     }
 
     if !minors_delta.is_empty() {
         changelog.push_str("## 🚀 New features");
-        for commit in &minors_delta {
-            changelog.push_str(&format!("\n- {}", commit.message));
+        for scope in minors_delta
+            .keys()
+            .filter(|s| !minors_delta.get(*s).unwrap().is_empty())
+        {
+            changelog.push_str(&format!("\n### {}", scope));
+            for commit in minors_delta.get(scope).unwrap() {
+                changelog.push_str(&format!("\n- {}", commit.message));
+            }
         }
         changelog.push_str("\n\n");
     }
 
     if !patches_delta.is_empty() {
-        changelog.push_str("## 🩹 Fixes");
-        for commit in &patches_delta {
-            changelog.push_str(&format!("\n- {}", commit.message));
+        changelog.push_str("## 🐛 Bug fixes");
+        for scope in patches_delta
+            .keys()
+            .filter(|s| !patches_delta.get(*s).unwrap().is_empty())
+        {
+            changelog.push_str(&format!("\n### {}", scope));
+            for commit in patches_delta.get(scope).unwrap() {
+                changelog.push_str(&format!("\n- {}", commit.message));
+            }
         }
         changelog.push_str("\n\n");
     }
