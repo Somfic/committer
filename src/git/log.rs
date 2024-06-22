@@ -90,19 +90,28 @@ impl Commit {
         let commit_regex =
             regex::Regex::new(r"^([^\w\s:()]+)?\s*(?:\(?([^\)]+)\)?\s*:)?\s*([\s\w]*)$").unwrap();
 
-        let captures = commit_regex.captures(&message).unwrap();
+        let captures = commit_regex.captures(&message);
 
-        let emoji = captures.get(1).map(|m| m.as_str().trim().to_string());
-        let scope = captures.get(2).map(|m| m.as_str().trim().to_string());
-        let message = captures
-            .get(3)
-            .map(|m| m.as_str().trim().to_string())
-            .unwrap();
+        match captures {
+            Some(captures) => {
+                let emoji = captures.get(1).map(|m| m.as_str().trim().to_string());
+                let scope = captures.get(2).map(|m| m.as_str().trim().to_string());
+                let message = captures
+                    .get(3)
+                    .map(|m| m.as_str().trim().to_string())
+                    .unwrap_or_default();
 
-        Self {
-            emoji,
-            scope,
-            message,
+                Self {
+                    emoji,
+                    scope,
+                    message,
+                }
+            }
+            None => Self {
+                emoji: None,
+                scope: None,
+                message,
+            },
         }
     }
 }
