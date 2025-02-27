@@ -1,5 +1,4 @@
 use crate::emoji::{Emoji, SemVer};
-use anyhow::Result;
 use inquire::{autocompletion::Replacement, validator::ValueRequiredValidator, Autocomplete};
 use std::collections::HashSet;
 
@@ -31,7 +30,7 @@ pub fn prompt(
 
     let result = text.prompt();
 
-    result.map_err(|e| anyhow::Error::new(e))
+    result.map_err(anyhow::Error::new)
 }
 
 #[derive(Clone)]

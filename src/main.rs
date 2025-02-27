@@ -1,7 +1,7 @@
 use anyhow::Ok;
 use emoji::{Emoji, SemVer};
 use genai::{
-    chat::{printer::PrintChatStreamOptions, ChatMessage, ChatRequest},
+    chat::{ChatMessage, ChatRequest},
     Client,
 };
 use git::status::Status;
