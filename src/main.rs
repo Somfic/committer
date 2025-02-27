@@ -191,6 +191,7 @@ async fn suggest_message(diff: String) -> anyhow::Result<String> {
         Do not include any other text in the response.
         Do not include any emojis in the response.
         Do not end the response with a period.
+        Do not start the response with a capital letter.
         "),
         ChatMessage::user(&diff),
     ]);
