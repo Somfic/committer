@@ -3,7 +3,11 @@ use anyhow::Result;
 use inquire::{autocompletion::Replacement, validator::ValueRequiredValidator, Autocomplete};
 use std::collections::HashSet;
 
-pub fn prompt(intention: &Emoji, previous_subjects: Vec<String>) -> Result<String> {
+pub fn prompt(
+    intention: &Emoji,
+    previous_subjects: Vec<String>,
+    default: String,
+) -> Result<String> {
     let description = match intention.semver {
         Some(SemVer::Major) => "Describe the breaking change",
         Some(SemVer::Minor) => "Describe the new feature",
@@ -17,6 +21,7 @@ pub fn prompt(intention: &Emoji, previous_subjects: Vec<String>) -> Result<Strin
         .with_help_message("Describe the commit in one line")
         .with_placeholder(description)
         .with_autocomplete(autocomplete)
+        .with_default(&default)
         .with_validator(ValueRequiredValidator::default())
         .prompt()?)
 }

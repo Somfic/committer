@@ -1,5 +1,9 @@
 use anyhow::Ok;
 use emoji::{Emoji, SemVer};
+use genai::{
+    chat::{printer::PrintChatStreamOptions, ChatMessage, ChatRequest},
+    Client,
+};
 use git::status::Status;
 use helper::set_github_env_var;
 use std::collections::HashSet;
@@ -59,7 +63,6 @@ async fn commit() -> anyhow::Result<()> {
     if staged_diff.is_empty() {
         // TODO: Add support to stage files
         println!("No changes added to commit. Stage changes first.");
-        println!("Staged changes:\n{:?}", staged_diff);
         return Ok(());
     }
 
@@ -76,14 +79,19 @@ async fn commit() -> anyhow::Result<()> {
         })
         .collect();
 
+    let diff = crate::git::diff::diff_raw()?;
+
     let intention = inquire::Select::new("Intention:", emojis)
         .with_help_message("What is intention behind the commit?")
         .prompt()?;
+
+    let suggested_message = suggest_message(diff).await?;
 
     // TODO: Add autocomplete with previously used commit subjects
     let subject = crate::prompt::subject::prompt(
         &intention,
         log.iter().map(|m| m.message.clone()).collect(),
+        suggested_message,
     )?;
 
     let mut scope = crate::prompt::scope::prompt(scopes)?;
@@ -130,4 +138,26 @@ async fn commit() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+async fn suggest_message(diff: String) -> anyhow::Result<String> {
+    let chat_req = ChatRequest::new(vec![
+        ChatMessage::system("Generate a commit message based on the given git diff. 
+        Summarize the following git diff in one sentence, assuming the user is a developer and summarizing the changes in the diff. 
+        Use the present tense and avoid using 'I' or 'we'. 
+        Try to be as concise as possible and use a maximum of 50 characters.
+        Use code tags to indicate functions, classes, and variables.
+        "),
+        ChatMessage::user(&diff),
+    ]);
+
+    let client = Client::default();
+    let chat_res = client
+        .exec_chat("gpt-4o-mini", chat_req.clone(), None)
+        .await?;
+
+    chat_res
+        .content
+        .and_then(|c| c.text_into_string())
+        .ok_or(anyhow::anyhow!("No content in chat response"))
 }

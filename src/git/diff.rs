@@ -38,11 +38,14 @@ pub fn diff(staged_only: bool) -> Result<Vec<Change>> {
     Ok(changes)
 }
 
+pub fn diff_raw() -> Result<String> {
+    execute("git", vec!["--no-pager", "diff", "--cached"])
+}
+
 #[derive(Debug)]
 pub struct Change {
     pub kind: ChangeKind,
     pub path: String,
-    pub content: String,
 }
 
 #[derive(Debug)]
