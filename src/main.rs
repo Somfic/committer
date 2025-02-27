@@ -147,9 +147,11 @@ async fn suggest_scope(diff: String, emojis: &[Emoji]) -> anyhow::Result<usize> 
     let chat_req = ChatRequest::new(vec![
         ChatMessage::system(format!("Given the following list of git scopes, suggest the most appropriate one based on the given git diff. Reply with the name of the scope only.
         The list of scopes has been provided in the format: <name>: <description> (<semver>).
+        The list of scopes is as follows:
 
         {}
         
+        Make sure to choose the most appropriate scope based on the git diff.
         ",
         emojis.iter().map(|e| format!("{}: {} ({:?})", e.name, e.description, e.semver)).collect::<Vec<String>>().join("\n"))),
         ChatMessage::user(&diff),
@@ -175,6 +177,9 @@ async fn suggest_message(diff: String) -> anyhow::Result<String> {
         Use the present tense and avoid using 'I' or 'we'. 
         Try to be as concise as possible and use a maximum of 50 characters.
         Use code tags to indicate functions, classes, and variables.
+        Do not include any other text in the response.
+        Do not include any emojis in the response.
+        Do not end the response with a period.
         "),
         ChatMessage::user(&diff),
     ]);
