@@ -6,8 +6,8 @@ use std::collections::HashSet;
 pub fn prompt(
     intention: &Emoji,
     previous_subjects: Vec<String>,
-    default: String,
-) -> Result<String> {
+    default: Option<String>,
+) -> anyhow::Result<String> {
     let description = match intention.semver {
         Some(SemVer::Major) => "Describe the breaking change",
         Some(SemVer::Minor) => "Describe the new feature",
@@ -17,13 +17,21 @@ pub fn prompt(
 
     let autocomplete = CommitSubjectCompleter::new(previous_subjects);
 
-    Ok(inquire::Text::new("Subject:")
+    let text = inquire::Text::new("Subject:")
         .with_help_message("Describe the commit in one line")
         .with_placeholder(description)
         .with_autocomplete(autocomplete)
-        .with_default(&default)
-        .with_validator(ValueRequiredValidator::default())
-        .prompt()?)
+        .with_validator(ValueRequiredValidator::default());
+
+    let text = if let Some(ref default_value) = default {
+        text.with_default(default_value)
+    } else {
+        text
+    };
+
+    let result = text.prompt();
+
+    result.map_err(|e| anyhow::Error::new(e))
 }
 
 #[derive(Clone)]

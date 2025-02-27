@@ -81,14 +81,25 @@ async fn commit() -> anyhow::Result<()> {
 
     let diff = crate::git::diff::diff_raw()?;
 
-    let suggested_scope = suggest_scope(diff.clone(), &emojis).await?;
+    let suggested_scope = suggest_scope(diff.clone(), &emojis)
+        .await
+        .map(Some)
+        .unwrap_or(None);
 
-    let intention = inquire::Select::new("Intention:", emojis)
-        .with_help_message("What is intention behind the commit?")
-        .with_starting_cursor(suggested_scope)
-        .prompt()?;
+    let intention_select = inquire::Select::new("Intention:", emojis)
+        .with_help_message("What is intention behind the commit?");
 
-    let suggested_message = suggest_message(diff.clone()).await?;
+    let intention = if let Some(suggested_scope) = suggested_scope {
+        intention_select.with_starting_cursor(suggested_scope)
+    } else {
+        intention_select.with_starting_cursor(0)
+    }
+    .prompt()?;
+
+    let suggested_message = suggest_message(diff.clone())
+        .await
+        .map(Some)
+        .unwrap_or(None);
 
     // TODO: Add autocomplete with previously used commit subjects
     let subject = crate::prompt::subject::prompt(
