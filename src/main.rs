@@ -11,7 +11,8 @@ pub mod helper;
 pub mod prompt;
 pub mod updater;
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let args = std::env::args().skip(1).collect::<Vec<String>>();
 
     if crate::git::status::status().is_err() {
@@ -22,7 +23,7 @@ fn main() -> anyhow::Result<()> {
     if args.contains(&"tag".to_string()) {
         tag()?;
     } else {
-        commit()?;
+        commit().await?;
     }
 
     Ok(())
@@ -44,7 +45,7 @@ fn tag() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn commit() -> anyhow::Result<()> {
+async fn commit() -> anyhow::Result<()> {
     let emojis = Emoji::all();
 
     let unstaged_diff = crate::git::diff::diff(false)?;
@@ -58,6 +59,7 @@ fn commit() -> anyhow::Result<()> {
     if staged_diff.is_empty() {
         // TODO: Add support to stage files
         println!("No changes added to commit. Stage changes first.");
+        println!("Staged changes:\n{:?}", staged_diff);
         return Ok(());
     }
 

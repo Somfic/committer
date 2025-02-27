@@ -38,9 +38,11 @@ pub fn diff(staged_only: bool) -> Result<Vec<Change>> {
     Ok(changes)
 }
 
+#[derive(Debug)]
 pub struct Change {
     pub kind: ChangeKind,
     pub path: String,
+    pub content: String,
 }
 
 #[derive(Debug)]
