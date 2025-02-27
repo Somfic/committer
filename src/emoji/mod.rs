@@ -26,7 +26,7 @@ impl Display for Emoji {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum SemVer {
     Major,

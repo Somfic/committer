@@ -81,11 +81,14 @@ async fn commit() -> anyhow::Result<()> {
 
     let diff = crate::git::diff::diff_raw()?;
 
+    let suggested_scope = suggest_scope(diff.clone(), &emojis).await?;
+
     let intention = inquire::Select::new("Intention:", emojis)
         .with_help_message("What is intention behind the commit?")
+        .with_starting_cursor(suggested_scope)
         .prompt()?;
 
-    let suggested_message = suggest_message(diff).await?;
+    let suggested_message = suggest_message(diff.clone()).await?;
 
     // TODO: Add autocomplete with previously used commit subjects
     let subject = crate::prompt::subject::prompt(
@@ -138,6 +141,31 @@ async fn commit() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+async fn suggest_scope(diff: String, emojis: &[Emoji]) -> anyhow::Result<usize> {
+    let chat_req = ChatRequest::new(vec![
+        ChatMessage::system(format!("Given the following list of git scopes, suggest the most appropriate one based on the given git diff. Reply with the name of the scope only.
+        The list of scopes has been provided in the format: <name>: <description> (<semver>).
+
+        {}
+        
+        ",
+        emojis.iter().map(|e| format!("{}: {} ({:?})", e.name, e.description, e.semver)).collect::<Vec<String>>().join("\n"))),
+        ChatMessage::user(&diff),
+    ]);
+
+    let client = Client::default();
+    let chat_res = client
+        .exec_chat("gpt-4o-mini", chat_req.clone(), None)
+        .await?;
+
+    let response = chat_res
+        .content
+        .and_then(|c| c.text_into_string())
+        .ok_or(anyhow::anyhow!("No content in chat response"))?;
+
+    Ok(emojis.iter().position(|e| e.name == response).unwrap_or(0))
 }
 
 async fn suggest_message(diff: String) -> anyhow::Result<String> {
