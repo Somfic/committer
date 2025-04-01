@@ -4,22 +4,24 @@ use crate::cmd::execute;
 use anyhow::Result;
 
 pub fn log() -> Result<Vec<Commit>> {
-    let commits = execute(
-        "git",
-        vec![
-            "--no-pager",
-            "log",
-            "--all",
-            "--decorate=short",
-            "--pretty=format:%s",
-        ],
-    )?;
+    //let commits = execute(
+    //   "git",
+    //     vec![
+    //           "--no-pager",
+    //"log",
+    // "--all",
+    //   "--decorate=short",
+    //     "--pretty=format:%s",
+    //   ],
+    // )?;
 
-    Ok(commits
-        .lines()
-        .filter(|line| !line.is_empty())
-        .map(Commit::new)
-        .collect::<Vec<Commit>>())
+    // Ok(commits
+    //   .lines()
+    //   .filter(|line| !line.is_empty())
+    //   .map(Commit::new)
+    //   .collect::<Vec<Commit>>())
+
+    Ok(vec![])
 }
 
 pub fn majors_since(tag: &String) -> Result<HashMap<String, Vec<Commit>>> {
