@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    commit-message:
+      prefix: "📌"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      cranelift:
+        patterns:
+          - "cranelift*"
+
+  - package-ecosystem: "github-actions"
+    commit-message:
+      prefix: "📌"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "daily"
+ 
