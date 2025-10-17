@@ -4,6 +4,7 @@ use clap::Parser;
 
 mod core;
 mod prelude;
+mod ui;
 #[cfg(test)]
 mod tests;
 

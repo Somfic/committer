@@ -6,13 +6,58 @@ use crate::prelude::*;
 use std::{fmt::Display, path::PathBuf};
 
 pub fn run(cwd: &PathBuf) -> Result<()> {
-    let repo = Repository::open(cwd)?;
+    // Check if difftastic is installed
+    check_difftastic_installed()?;
 
-    let status = Statuses::query(&repo)?;
-    println!("{}", status);
+    let repo = Repository::open(cwd)?;
+    let statuses = Statuses::query(&repo)?;
+
+    if statuses.is_clean() {
+        println!(" {}", "Working directory clean".bright_green());
+        return Ok(());
+    }
+
+    crate::ui::run_ui(repo, statuses)?;
 
     Ok(())
 }
+
+fn check_difftastic_installed() -> Result<()> {
+    use std::process::Command;
+
+    let result = Command::new("difft")
+        .arg("--version")
+        .output();
+
+    match result {
+        Ok(output) if output.status.success() => Ok(()),
+        _ => {
+            eprintln!();
+            eprintln!("{}", "╭─────────────────────────────────────────────╮".bright_red());
+            eprintln!("{}", "│  ⚠️  difftastic is required but not found  │".bright_red());
+            eprintln!("{}", "╰─────────────────────────────────────────────╯".bright_red());
+            eprintln!();
+            eprintln!("{}", "This tool requires difftastic for displaying diffs.".bright_yellow());
+            eprintln!();
+            eprintln!("{}", "Quick install:".bright_cyan().bold());
+            eprintln!();
+            eprintln!("  Via cargo:");
+            eprintln!("    {}", "cargo install difftastic".bright_white().bold());
+            eprintln!();
+            eprintln!("  Via homebrew (macOS):");
+            eprintln!("    {}", "brew install difftastic".bright_white().bold());
+            eprintln!();
+            eprintln!("  Via package managers:");
+            eprintln!("    {}", "# Arch: pacman -S difftastic".bright_white());
+            eprintln!("    {}", "# Nix:  nix-env -i difftastic".bright_white());
+            eprintln!();
+            eprintln!("{}", "After installing, run this command again.".bright_green());
+            eprintln!();
+            Err(git2::Error::from_str("difftastic not found"))?
+        }
+    }
+}
+
 
 pub struct Statuses(Vec<Status>);
 impl Statuses {
@@ -156,7 +201,6 @@ impl Display for Statuses {
             return Ok(());
         }
 
-        writeln!(f)?;
         for status in self.files() {
             writeln!(f, " {}", status)?;
         }

@@ -5,6 +5,10 @@ edition = "2021"
 description = "A simple git commit message generator"
 license = "MIT"
 
+[[bin]]
+name = "committer"
+path = "src/main.rs"
+
 [dependencies]
 inquire = { version = "0.9.1", features = ["editor"] }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -14,6 +18,25 @@ miette = { version = "7.6.0", features = ["fancy"] }
 thiserror = "2.0.17"
 owo-colors = "4.2.3"
 nerd-font-symbols = "0.3.0"
+ratatui = "0.29"
+crossterm = "0.28"
+tempfile = "3"
+ansi-to-tui = "7"
+
+[package.metadata.cargo-all-features]
+denylist = []
+
+[package.metadata.docs.rs]
+all-features = true
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }.tar.gz"
+bin-dir = "{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.signing]
+algorithm = "minisign"
+pubkey = ""
 
 [dev-dependencies]
 tempfile = "3"
