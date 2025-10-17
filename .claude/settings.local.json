@@ -4,7 +4,9 @@
       "Bash(cargo doc:*)",
       "WebSearch",
       "WebFetch(domain:docs.rs)",
-      "WebFetch(domain:lib.rs)"
+      "WebFetch(domain:lib.rs)",
+      "WebFetch(domain:github.com)",
+      "Bash(cargo:*)"
     ],
     "deny": [],
     "ask": []

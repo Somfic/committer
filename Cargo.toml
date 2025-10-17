@@ -8,9 +8,12 @@ license = "MIT"
 [dependencies]
 inquire = { version = "0.9.1", features = ["editor"] }
 serde = { version = "1.0.228", features = ["derive"] }
-gix = "0.73"
+git2 = "0.19"
 clap = { version = "4.5.49", features = ["derive"] }
 miette = { version = "7.6.0", features = ["fancy"] }
 thiserror = "2.0.17"
 owo-colors = "4.2.3"
 nerd-font-symbols = "0.3.0"
+
+[dev-dependencies]
+tempfile = "3"

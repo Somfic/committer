@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use crate::prelude::*;
 use clap::Parser;
-use gix::Repository;
 
 mod core;
 mod prelude;
+#[cfg(test)]
+mod tests;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
