@@ -1,4 +1,5 @@
 use anyhow::Ok;
+use clap::{Parser, Subcommand};
 use emoji::{Emoji, SemVer};
 use genai::{
     chat::{ChatMessage, ChatRequest},
@@ -15,19 +16,34 @@ pub mod helper;
 pub mod prompt;
 pub mod updater;
 
+#[derive(Parser)]
+#[command(about = "A simple git commit message generator")]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Command>,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Create a version tag based on commit history
+    Tag,
+    /// Generate a commit message without committing (for lazygit integration)
+    Generate,
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let args = std::env::args().skip(1).collect::<Vec<String>>();
+    let cli = Cli::parse();
 
     if crate::git::status::status().is_err() {
         println!("Not in a git repository.");
         return Ok(());
     }
 
-    if args.contains(&"tag".to_string()) {
-        tag()?;
-    } else {
-        commit().await?;
+    match cli.command {
+        Some(Command::Tag) => tag()?,
+        Some(Command::Generate) => generate().await?,
+        None => commit().await?,
     }
 
     Ok(())
@@ -150,6 +166,37 @@ async fn commit() -> anyhow::Result<()> {
     if wants_to_push {
         crate::git::push::push()?;
     }
+
+    Ok(())
+}
+
+async fn generate() -> anyhow::Result<()> {
+    let emojis = Emoji::all();
+
+    let staged_diff = crate::git::diff::diff(true)?;
+    if staged_diff.is_empty() {
+        eprintln!("No changes added to commit. Stage changes first.");
+        std::process::exit(1);
+    }
+
+    let diff = crate::git::diff::diff_raw()?;
+
+    let scope_idx = suggest_scope(diff.clone(), &emojis).await.unwrap_or(0);
+    let intention = &emojis[scope_idx];
+
+    let subject = suggest_message(diff).await.unwrap_or_else(|e| {
+        eprintln!("Failed to generate message: {}", e);
+        std::process::exit(1);
+    });
+
+    let semver = match intention.semver {
+        Some(SemVer::Major) => "semver: major",
+        Some(SemVer::Minor) => "semver: minor",
+        Some(SemVer::Patch) => "semver: patch",
+        None => "semver: chore",
+    };
+
+    println!("{} {}\n\n{}", intention.emoji, subject, semver);
 
     Ok(())
 }
