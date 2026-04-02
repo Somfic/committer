@@ -20,6 +20,15 @@
           extensions = [ "rust-src" "rust-analyzer" "clippy" ];
         };
       in {
+        packages.default = pkgs.rustPlatform.buildRustPackage {
+          pname = "committer";
+          version = "0.0.0";
+          src = ./.;
+          cargoLock.lockFile = ./Cargo.lock;
+          nativeBuildInputs = with pkgs; [ pkg-config ];
+          buildInputs = with pkgs; [ openssl ];
+        };
+
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             rustToolchain
