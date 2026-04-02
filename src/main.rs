@@ -7,7 +7,6 @@ use genai::{
 };
 use git::status::Status;
 use helper::set_github_env_var;
-use std::collections::HashSet;
 
 pub mod cmd;
 pub mod emoji;
@@ -50,12 +49,12 @@ async fn main() -> anyhow::Result<()> {
 }
 
 fn tag() -> anyhow::Result<()> {
-    if let Some(tag) = crate::helper::calculate_new_tag_based_on_commits()? {
-        crate::updater::cargo::set_version(&tag)?;
-        set_github_env_var("COMMITTER_TAG", &tag.to_string())?;
-        crate::git::tag::tag(tag.to_string())?;
+    if let Some(release) = crate::helper::calculate_new_tag_based_on_commits()? {
+        crate::updater::cargo::set_version(&release.version)?;
+        set_github_env_var("COMMITTER_TAG", &release.version.to_string())?;
+        crate::git::tag::tag(release.version.to_string())?;
         set_github_env_var("COMMITTER_IS_NEW", "true")?;
-        println!("New version tagged as {}.", tag);
+        println!("New version tagged as {}.", release.version);
     } else {
         set_github_env_var("COMMITTER_TAG", "")?;
         set_github_env_var("COMMITTER_IS_NEW", "false")?;
@@ -83,17 +82,6 @@ async fn commit() -> anyhow::Result<()> {
     }
 
     let status: Status = crate::git::status::status()?;
-    let log = crate::git::log::log()?;
-    let scope_regex = regex::Regex::new(r"\s\((\w+)\):")?;
-    let scopes: HashSet<String> = log
-        .iter()
-        .map(|c| c.message.clone())
-        .flat_map(|line| {
-            scope_regex
-                .captures(&line)
-                .and_then(|c| c.get(1).map(|m| m.as_str().to_string()))
-        })
-        .collect();
 
     let diff = crate::git::diff::diff_raw()?;
 
@@ -117,21 +105,13 @@ async fn commit() -> anyhow::Result<()> {
         .map(Some)
         .unwrap_or(None);
 
-    // TODO: Add autocomplete with previously used commit subjects
     let subject = crate::prompt::subject::prompt(
         &intention,
-        log.iter().map(|m| m.message.clone()).collect(),
+        vec![],
         suggested_message,
     )?;
 
-    let mut scope = crate::prompt::scope::prompt(scopes)?;
-
-    // If not empty, add a space before the scope
-    if !scope.is_empty() {
-        scope = format!("({}): ", scope);
-    }
-
-    let subject = &format!("{} {}{}", intention.emoji, scope, subject);
+    let subject = &format!("{} {}", intention.emoji, subject);
 
     let semver = match intention.semver {
         Some(SemVer::Major) => "semver: major".to_string(),
