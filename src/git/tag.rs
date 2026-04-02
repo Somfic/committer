@@ -3,10 +3,20 @@ use crate::cmd::execute;
 pub fn latest() -> anyhow::Result<String> {
     execute("git", vec!["fetch", "--tags"])?;
 
-    let result =
-        execute("git", vec!["describe", "--tags", "--abbrev=0"]).unwrap_or("0.0.0".to_owned());
+    // Find the latest stable (non-draft) semver tag, matching workflow logic
+    let tags = execute("git", vec!["tag", "--sort=-v:refname"]).unwrap_or_default();
 
-    Ok(result.trim().to_string())
+    let tag = tags
+        .lines()
+        .find(|line| {
+            let re = regex::Regex::new(r"^v[0-9]+\.[0-9]+\.[0-9]+$").unwrap();
+            re.is_match(line.trim())
+        })
+        .unwrap_or("v0.0.0")
+        .trim()
+        .to_string();
+
+    Ok(tag)
 }
 
 pub fn tag(tag: String) -> anyhow::Result<()> {
